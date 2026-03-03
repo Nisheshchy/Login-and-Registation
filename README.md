@@ -27,11 +27,11 @@ A stunning, cinematic authentication experience built with **React**, **Tailwind
 
 ##  Tech Stack
 
-- **Framework**: [React](https://reactjs.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/)
+- **Framework**: [React]
+- **Build Tool**: [Vite]
+- **Styling**: [Tailwind CSS]
+- **Animations**: [Framer Motion]
+- **Icons**: [Lucide React]
 
 ---
 
