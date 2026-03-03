@@ -1,16 +1,29 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Login = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate successful login
-    setIsSuccess(true);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    if (email === "admin@log.com" && password === "admin~109") {
+      setError("");
+      setIsSuccess(true);
+      setTimeout(() => {
+        navigate("/admin");
+      }, 2000);
+    } else {
+      setError("Invalid admin credentials");
+    }
   };
 
   return (
@@ -42,6 +55,15 @@ const Login = () => {
               >
                 Please enter your details to sign in
               </motion.p>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold"
+                >
+                  {error}
+                </motion.div>
+              )}
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>

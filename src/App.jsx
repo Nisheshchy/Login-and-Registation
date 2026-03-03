@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import "./App.css";
 import Login from "./login.jsx";
 import Sign from "./sign.jsx";
+import AdminDashboard from "./AdminDashboard.jsx";
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -46,6 +47,7 @@ const AnimatedRoutes = () => {
             </div>
           }
         />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </AnimatePresence>
