@@ -21,6 +21,8 @@ import {
     X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const AdminDashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -62,7 +64,7 @@ const AdminDashboard = () => {
         },
     ];
 
-    const recentUsers = [
+    const [usersList, setUsersList] = useState([
         {
             name: "Alex Johnson",
             email: "alex@log.com",
@@ -98,7 +100,64 @@ const AdminDashboard = () => {
             status: "Active",
             image: "https://i.pravatar.cc/150?u=64",
         },
-    ];
+    ]);
+
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [editingUserIndex, setEditingUserIndex] = useState(null);
+    const [userFormData, setUserFormData] = useState({ name: "", email: "", role: "User", status: "Active" });
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterRole, setFilterRole] = useState("All");
+
+    const filteredUsers = usersList.filter(user => {
+        const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = filterRole === "All" || user.role === filterRole;
+        return matchesSearch && matchesFilter;
+    });
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        doc.text("User Management Report", 20, 10);
+        const tableData = filteredUsers.map(user => [user.name, user.email, user.role, user.status]);
+        autoTable(doc, {
+            head: [['Name', 'Email', 'Role', 'Status']],
+            body: tableData,
+        });
+        doc.save("users-report.pdf");
+    };
+
+    const handleAddUserClick = () => {
+        setEditingUserIndex(null);
+        setUserFormData({ name: "", email: "", role: "User", status: "Active" });
+        setIsUserModalOpen(true);
+    };
+
+    const handleEditUserClick = (index, user) => {
+        setEditingUserIndex(index);
+        setUserFormData(user);
+        setIsUserModalOpen(true);
+    };
+
+    const handleDeleteUser = (index) => {
+        const updatedUsers = usersList.filter((_, i) => i !== index);
+        setUsersList(updatedUsers);
+    };
+
+    const handleSaveUser = () => {
+        if (!userFormData.name || !userFormData.email) return;
+
+        const updatedUsers = [...usersList];
+        if (editingUserIndex !== null) {
+            updatedUsers[editingUserIndex] = { ...updatedUsers[editingUserIndex], ...userFormData };
+        } else {
+            updatedUsers.unshift({
+                ...userFormData,
+                image: `https://i.pravatar.cc/150?u=${Math.floor(Math.random() * 50) + 70}`,
+            });
+        }
+        setUsersList(updatedUsers);
+        setIsUserModalOpen(false);
+    };
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 flex overflow-hidden font-sans">
@@ -302,7 +361,7 @@ const AdminDashboard = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
-                                                    {recentUsers.map((user) => (
+                                                    {usersList.slice(0, 5).map((user) => (
                                                         <tr
                                                             key={user.email}
                                                             className="group hover:bg-white/5 transition-colors">
@@ -520,7 +579,9 @@ const AdminDashboard = () => {
                                             Manage your team and user permissions.
                                         </p>
                                     </div>
-                                    <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+                                    <button
+                                        onClick={handleAddUserClick}
+                                        className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
                                         Add New User
                                     </button>
                                 </div>
@@ -532,16 +593,28 @@ const AdminDashboard = () => {
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
                                                 type="text"
-                                                placeholder="Search users..."
-                                                className="bg-slate-800/50 border border-white/5 rounded-xl py-2 pl-10 pr-4 w-64 text-sm focus:outline-none"
+                                                placeholder="Search by name or email..."
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="bg-slate-800/50 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 w-64 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all text-white"
                                             />
                                         </div>
-                                        <div className="flex gap-2">
-                                            <button className="px-4 py-2 bg-slate-800 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-700 transition-colors">
-                                                Filter
-                                            </button>
-                                            <button className="px-4 py-2 bg-slate-800 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-700 transition-colors">
-                                                Export
+                                        <div className="flex gap-3">
+                                            <select
+                                                value={filterRole}
+                                                onChange={(e) => setFilterRole(e.target.value)}
+                                                className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-700 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500/50 text-white appearance-none cursor-pointer"
+                                            >
+                                                <option value="All">All Roles</option>
+                                                <option value="Owner">Owner</option>
+                                                <option value="Admin">Admin</option>
+                                                <option value="Manager">Manager</option>
+                                                <option value="User">User</option>
+                                            </select>
+                                            <button
+                                                onClick={handleExportPDF}
+                                                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-blue-500/10 active:scale-95">
+                                                Export PDF
                                             </button>
                                         </div>
                                     </div>
@@ -558,7 +631,7 @@ const AdminDashboard = () => {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-white/5">
-                                                {[...recentUsers, ...recentUsers].map((user, i) => (
+                                                {filteredUsers.map((user, i) => (
                                                     <tr
                                                         key={i}
                                                         className="group hover:bg-white/[0.02] transition-colors">
@@ -599,10 +672,14 @@ const AdminDashboard = () => {
                                                             Oct 12, 2023
                                                         </td>
                                                         <td className="px-6 py-4 text-right">
-                                                            <button className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest mr-4">
+                                                            <button
+                                                                onClick={() => handleEditUserClick(i, user)}
+                                                                className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest mr-4">
                                                                 Edit
                                                             </button>
-                                                            <button className="text-xs font-bold text-rose-500 hover:text-rose-400 transition-colors uppercase tracking-widest">
+                                                            <button
+                                                                onClick={() => handleDeleteUser(i)}
+                                                                className="text-xs font-bold text-rose-500 hover:text-rose-400 transition-colors uppercase tracking-widest">
                                                                 Delete
                                                             </button>
                                                         </td>
@@ -614,8 +691,8 @@ const AdminDashboard = () => {
                                     <div className="p-6 border-t border-white/5 flex items-center justify-between">
                                         <p className="text-xs text-slate-500">
                                             Showing{" "}
-                                            <span className="text-slate-300 font-bold">10</span> of{" "}
-                                            <span className="text-slate-300 font-bold">450</span>{" "}
+                                            <span className="text-slate-300 font-bold">{filteredUsers.length}</span> of{" "}
+                                            <span className="text-slate-300 font-bold">{usersList.length}</span>{" "}
                                             users
                                         </p>
                                         <div className="flex gap-2">
@@ -672,6 +749,100 @@ const AdminDashboard = () => {
       `,
                 }}
             />
+
+            {/* User Modal */}
+            <AnimatePresence>
+                {isUserModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-slate-900 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+                        >
+                            <button
+                                onClick={() => setIsUserModalOpen(false)}
+                                className="absolute right-4 top-4 p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <h2 className="text-2xl font-bold text-white mb-6">
+                                {editingUserIndex !== null ? "Edit User" : "Add New User"}
+                            </h2>
+
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Name</label>
+                                    <input
+                                        type="text"
+                                        value={userFormData.name}
+                                        onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
+                                        className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        placeholder="Full Name"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                                    <input
+                                        type="email"
+                                        value={userFormData.email}
+                                        onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
+                                        className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        placeholder="Email Address"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Role</label>
+                                        <select
+                                            value={userFormData.role}
+                                            onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
+                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none appearance-none"
+                                        >
+                                            <option value="User">User</option>
+                                            <option value="Manager">Manager</option>
+                                            <option value="Admin">Admin</option>
+                                            <option value="Owner">Owner</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</label>
+                                        <select
+                                            value={userFormData.status}
+                                            onChange={(e) => setUserFormData({ ...userFormData, status: e.target.value })}
+                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none appearance-none"
+                                        >
+                                            <option value="Active">Active</option>
+                                            <option value="Inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 flex gap-3">
+                                    <button
+                                        onClick={() => setIsUserModalOpen(false)}
+                                        className="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveUser}
+                                        className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-500/20"
+                                    >
+                                        Save User
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
