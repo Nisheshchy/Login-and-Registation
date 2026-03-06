@@ -83,7 +83,7 @@ const Login = () => {
                     type="email"
                     id="email"
                     name="email"
-                    placeholder="name@company.com"
+                    placeholder="tharu@log.com"
                   />
                 </motion.div>
               </div>
