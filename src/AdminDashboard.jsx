@@ -1,6 +1,6 @@
 /** @format */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
@@ -29,10 +29,12 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState("Dashboard");
     const navigate = useNavigate();
 
-    const stats = [
+    const [stats, setStats] = useState([
         {
             title: "Total Revenue",
-            value: "$45,231.89",
+            value: 45231.89,
+            prefix: "$",
+            suffix: "",
             change: "+20.1%",
             trend: "up",
             icon: DollarSign,
@@ -40,7 +42,9 @@ const AdminDashboard = () => {
         },
         {
             title: "Active Users",
-            value: "2,350",
+            value: 2350,
+            prefix: "",
+            suffix: "",
             change: "+180.1%",
             trend: "up",
             icon: Users,
@@ -48,7 +52,9 @@ const AdminDashboard = () => {
         },
         {
             title: "Sales",
-            value: "+12,234",
+            value: 12234,
+            prefix: "+",
+            suffix: "",
             change: "+19%",
             trend: "up",
             icon: ShoppingBag,
@@ -56,22 +62,43 @@ const AdminDashboard = () => {
         },
         {
             title: "Active Now",
-            value: "+573",
+            value: 573,
+            prefix: "+",
+            suffix: "",
             change: "+201",
             trend: "up",
             icon: Activity,
             color: "text-orange-400",
         },
-    ];
+    ]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setStats(prevStats => prevStats.map(stat => {
+                if (stat.title === "Active Now") {
+                    const change = Math.floor(Math.random() * 7) - 3; // -3 to +3
+                    return { ...stat, value: Math.max(10, stat.value + change) };
+                }
+                if (stat.title === "Total Revenue") {
+                    const change = (Math.random() * 4) - 1.5; // -1.5 to +2.5
+                    return { ...stat, value: Math.max(0, stat.value + change) };
+                }
+                if (stat.title === "Active Users" || stat.title === "Sales") {
+                    const shouldChange = Math.random() > 0.7; // Only change 30% of the time
+                    if (shouldChange) {
+                        const change = Math.floor(Math.random() * 3) - 1; // -1 to +1
+                        return { ...stat, value: Math.max(0, stat.value + change) };
+                    }
+                }
+                return stat;
+            }));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const [usersList, setUsersList] = useState([
-        {
-            name: "Alex Johnson",
-            email: "alex@log.com",
-            role: "Owner",
-            status: "Active",
-            image: "https://i.pravatar.cc/150?u=50",
-        },
+
         {
             name: "Sam Smith",
             email: "sam@log.com",
@@ -107,6 +134,8 @@ const AdminDashboard = () => {
     const [userFormData, setUserFormData] = useState({ name: "", email: "", role: "User", status: "Active" });
     const [searchQuery, setSearchQuery] = useState("");
     const [filterRole, setFilterRole] = useState("All");
+    const [selectedViewUser, setSelectedViewUser] = useState(null);
+    const [dashboardSearchQuery, setDashboardSearchQuery] = useState("");
 
     const filteredUsers = usersList.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -327,10 +356,27 @@ const AdminDashboard = () => {
                                                     {stat.change}
                                                 </div>
                                             </div>
-                                            <p className="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wider">
-                                                {stat.title}
-                                            </p>
-                                            <h3 className="text-2xl font-bold">{stat.value}</h3>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                                                    {stat.title}
+                                                </p>
+                                                {stat.title === "Active Now" && (
+                                                    <span className="flex h-2 w-2 relative">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-2xl font-bold">
+                                                {stat.prefix}
+                                                {typeof stat.value === "number"
+                                                    ? stat.value.toLocaleString(undefined, {
+                                                        minimumFractionDigits: stat.title.includes("Revenue") ? 2 : 0,
+                                                        maximumFractionDigits: stat.title.includes("Revenue") ? 2 : 0,
+                                                    })
+                                                    : stat.value}
+                                                {stat.suffix}
+                                            </h3>
                                         </motion.div>
                                     ))}
                                 </div>
@@ -342,12 +388,24 @@ const AdminDashboard = () => {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.4 }}
                                         className="lg:col-span-2 bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden">
-                                        <div className="p-6 border-b border-white/5 flex justify-between items-center">
-                                            <h2 className="text-xl font-bold">Recent Users</h2>
+                                        <div className="p-6 border-b border-white/5 flex flex-wrap gap-4 items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <h2 className="text-xl font-bold">Recent Users</h2>
+                                                <div className="relative">
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Quick search..."
+                                                        value={dashboardSearchQuery}
+                                                        onChange={(e) => setDashboardSearchQuery(e.target.value)}
+                                                        className="bg-slate-800/50 border border-white/5 rounded-lg py-1.5 pl-9 pr-3 w-48 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all text-white"
+                                                    />
+                                                </div>
+                                            </div>
                                             <button
                                                 onClick={() => setActiveTab("Users")}
-                                                className="text-sm text-blue-400 font-bold hover:underline underline-offset-4">
-                                                View All
+                                                className="text-sm text-blue-400 font-bold hover:underline underline-offset-4 bg-blue-500/5 px-3 py-1.5 rounded-lg border border-blue-500/10">
+                                                Manage All
                                             </button>
                                         </div>
                                         <div className="p-0 overflow-x-auto">
@@ -361,43 +419,50 @@ const AdminDashboard = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
-                                                    {usersList.slice(0, 5).map((user) => (
-                                                        <tr
-                                                            key={user.email}
-                                                            className="group hover:bg-white/5 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <img
-                                                                        src={user.image}
-                                                                        alt={user.name}
-                                                                        className="w-10 h-10 rounded-full border border-white/10"
-                                                                    />
-                                                                    <div>
-                                                                        <p className="font-bold text-sm group-hover:text-blue-400 transition-colors uppercase tracking-tight">
-                                                                            {user.name}
-                                                                        </p>
-                                                                        <p className="text-xs text-slate-500">
-                                                                            {user.email}
-                                                                        </p>
+                                                    {usersList
+                                                        .filter(user =>
+                                                            user.name.toLowerCase().includes(dashboardSearchQuery.toLowerCase()) ||
+                                                            user.email.toLowerCase().includes(dashboardSearchQuery.toLowerCase())
+                                                        )
+                                                        .slice(0, 5)
+                                                        .map((user) => (
+                                                            <tr
+                                                                key={user.email}
+                                                                onClick={() => setSelectedViewUser(user)}
+                                                                className="group hover:bg-white/5 transition-colors cursor-pointer">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <img
+                                                                            src={user.image}
+                                                                            alt={user.name}
+                                                                            className="w-10 h-10 rounded-full border border-white/10"
+                                                                        />
+                                                                        <div>
+                                                                            <p className="font-bold text-sm group-hover:text-blue-400 transition-colors uppercase tracking-tight">
+                                                                                {user.name}
+                                                                            </p>
+                                                                            <p className="text-xs text-slate-500">
+                                                                                {user.email}
+                                                                            </p>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4 font-bold text-slate-400">
-                                                                {user.role}
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span
-                                                                    className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${user.status === "Active" ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-800 text-slate-500"}`}>
-                                                                    {user.status}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <button className="p-2 hover:bg-slate-800 rounded-lg transition-colors">
-                                                                    <MoreVertical className="w-4 h-4 text-slate-500" />
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
+                                                                </td>
+                                                                <td className="px-6 py-4 font-bold text-slate-400">
+                                                                    {user.role}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span
+                                                                        className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${user.status === "Active" ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-800 text-slate-500"}`}>
+                                                                        {user.status}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <button className="p-2 hover:bg-slate-800 rounded-lg transition-colors">
+                                                                        <MoreVertical className="w-4 h-4 text-slate-500" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -634,7 +699,8 @@ const AdminDashboard = () => {
                                                 {filteredUsers.map((user, i) => (
                                                     <tr
                                                         key={i}
-                                                        className="group hover:bg-white/[0.02] transition-colors">
+                                                        onClick={() => setSelectedViewUser(user)}
+                                                        className="group hover:bg-white/[0.02] transition-colors cursor-pointer">
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-3">
                                                                 <img
@@ -671,7 +737,7 @@ const AdminDashboard = () => {
                                                         <td className="px-6 py-4 text-xs text-slate-500 font-medium">
                                                             Oct 12, 2023
                                                         </td>
-                                                        <td className="px-6 py-4 text-right">
+                                                        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                                                             <button
                                                                 onClick={() => handleEditUserClick(i, user)}
                                                                 className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest mr-4">
@@ -836,6 +902,120 @@ const AdminDashboard = () => {
                                         className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-500/20"
                                     >
                                         Save User
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {/* User Detail View Modal */}
+            <AnimatePresence>
+                {selectedViewUser && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setSelectedViewUser(null)}
+                        className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4"
+                    >
+                        <motion.div
+                            onClick={(e) => e.stopPropagation()}
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-slate-900 border border-white/10 rounded-[40px] p-10 w-full max-w-2xl shadow-2xl relative overflow-hidden"
+                        >
+                            {/* Decorative Background Elements */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] rounded-full -mr-20 -mt-20" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/5 blur-[100px] rounded-full -ml-20 -mb-20" />
+
+                            <button
+                                onClick={() => setSelectedViewUser(null)}
+                                className="absolute right-8 top-8 p-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all active:scale-90"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+
+                            <div className="relative z-10">
+                                <div className="flex flex-col md:flex-row gap-10 items-start md:items-center mb-10">
+                                    <div className="w-32 h-32 rounded-[32px] bg-gradient-to-tr from-blue-600 to-indigo-600 p-[1px] shadow-2xl shadow-blue-500/20">
+                                        <div className="w-full h-full bg-slate-900 rounded-[31px] flex items-center justify-center overflow-hidden">
+                                            <img src={selectedViewUser.image} alt={selectedViewUser.name} className="w-full h-full object-cover" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <h2 className="text-4xl font-bold text-white tracking-tight">{selectedViewUser.name}</h2>
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedViewUser.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-slate-500/10 text-slate-400 border border-slate-500/20"}`}>
+                                                {selectedViewUser.status}
+                                            </span>
+                                        </div>
+                                        <p className="text-slate-400 text-lg">{selectedViewUser.email}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
+                                    <div className="space-y-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                                                <User className="w-6 h-6 text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Assigned Role</p>
+                                                <p className="text-white font-bold text-lg">{selectedViewUser.role}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                                                <Activity className="w-6 h-6 text-emerald-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Account Status</p>
+                                                <p className="text-white font-bold text-lg">Fully Verified</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                                                <Search className="absolute invisible" />
+                                                <div className="w-6 h-6 rounded-full border-2 border-indigo-400/30 flex items-center justify-center">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-400" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Join Date</p>
+                                                <p className="text-white font-bold text-lg">Oct 12, 2023</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                                                <Bell className="w-6 h-6 text-purple-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Last Login</p>
+                                                <p className="text-white font-bold text-lg">2 hours ago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-12 flex gap-4">
+                                    <button
+                                        onClick={() => setSelectedViewUser(null)}
+                                        className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 border border-white/5"
+                                    >
+                                        Close Details
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleEditUserClick(usersList.indexOf(selectedViewUser), selectedViewUser);
+                                            setSelectedViewUser(null);
+                                        }}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-blue-500/20"
+                                    >
+                                        Edit Account
                                     </button>
                                 </div>
                             </div>
