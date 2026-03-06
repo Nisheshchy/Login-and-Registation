@@ -70,7 +70,7 @@ const Sign = () => {
                     type="text"
                     id="name"
                     name="name"
-                    placeholder="John Doe"
+                    placeholder="Asama Tharu"
                   />
                 </motion.div>
               </div>
@@ -88,7 +88,7 @@ const Sign = () => {
                     type="email"
                     id="email"
                     name="email"
-                    placeholder="name@company.com"
+                    placeholder="tharu@log.com"
                   />
                 </motion.div>
               </div>
@@ -130,8 +130,8 @@ const Sign = () => {
                       initial={{ width: 0 }}
                       animate={{ width: `${strength}%` }}
                       className={`h-full transition-all duration-500 ${strength <= 25 ? "bg-red-500" :
-                          strength <= 50 ? "bg-orange-500" :
-                            strength <= 75 ? "bg-yellow-500" : "bg-emerald-500"
+                        strength <= 50 ? "bg-orange-500" :
+                          strength <= 75 ? "bg-yellow-500" : "bg-emerald-500"
                         }`}
                     />
                   </div>
