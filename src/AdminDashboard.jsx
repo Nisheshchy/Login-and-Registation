@@ -19,6 +19,15 @@ import {
     ShoppingBag,
     Menu,
     X,
+    PieChart,
+    Shield,
+    Globe,
+    Zap,
+    Mail,
+    Smartphone,
+    History,
+    CheckCircle2,
+    AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
@@ -37,6 +46,7 @@ const AdminDashboard = () => {
             trend: "up",
             icon: DollarSign,
             color: "text-emerald-400",
+            bg: "bg-emerald-400/5",
         },
         {
             title: "Active Users",
@@ -45,24 +55,29 @@ const AdminDashboard = () => {
             trend: "up",
             icon: Users,
             color: "text-blue-400",
+            bg: "bg-blue-400/5",
         },
         {
-            title: "Sales",
+            title: "Sales Count",
             value: "+12,234",
-            change: "+19%",
+            change: "+19.2%",
             trend: "up",
             icon: ShoppingBag,
             color: "text-purple-400",
+            bg: "bg-purple-400/5",
         },
         {
-            title: "Active Now",
+            title: "Live Sessions",
             value: "+573",
-            change: "+201",
+            change: "+20 today",
             trend: "up",
             icon: Activity,
             color: "text-orange-400",
+            bg: "bg-orange-400/5",
         },
     ];
+
+    const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
     const [usersList, setUsersList] = useState([
         {
@@ -107,6 +122,27 @@ const AdminDashboard = () => {
     const [userFormData, setUserFormData] = useState({ name: "", email: "", role: "User", status: "Active" });
     const [searchQuery, setSearchQuery] = useState("");
     const [filterRole, setFilterRole] = useState("All");
+
+    const [settings, setSettings] = useState({
+        systemName: "LOGAdmin v2.0",
+        notifications: {
+            email: true,
+            push: true,
+            sms: false,
+        },
+        securityMode: "High",
+        theme: "Dark",
+    });
+
+    const logs = [
+        { id: 1, action: "User Login", user: "Alex Johnson", time: "2 mins ago", status: "success", icon: CheckCircle2 },
+        { id: 2, action: "Settings Update", user: "Nishesh Ch.", time: "15 mins ago", status: "success", icon: CheckCircle2 },
+        { id: 3, action: "Password Change", user: "Sam Smith", time: "1 hour ago", status: "warning", icon: AlertCircle },
+        { id: 4, action: "DB Backup", user: "System", time: "2 hours ago", status: "success", icon: CheckCircle2 },
+        { id: 5, action: "New User Registered", user: "Ray Zane", time: "4 hours ago", status: "success", icon: CheckCircle2 },
+    ];
+
+    const revenueData = [30, 45, 35, 60, 55, 80, 75, 90, 85, 100]; // Sample data for custom chart
 
     const filteredUsers = usersList.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -187,8 +223,9 @@ const AdminDashboard = () => {
                     {[
                         { name: "Dashboard", icon: LayoutDashboard },
                         { name: "Users", icon: Users },
-                        { name: "Profile", icon: User },
                         { name: "Analytics", icon: BarChart3 },
+                        { name: "Logs", icon: History },
+                        { name: "Profile", icon: User },
                         { name: "Settings", icon: Settings },
                     ].map((item) => (
                         <button
@@ -708,6 +745,207 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                             </motion.div>
+                        ) : activeTab === "Analytics" ? (
+                            <motion.div
+                                key="analytics"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}>
+                                <div className="mb-8">
+                                    <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">System Analytics</h1>
+                                    <p className="text-slate-400">Detailed insights into your system performance and user activity.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Revenue Trend Chart */}
+                                    <div className="bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-3xl p-8">
+                                        <div className="flex justify-between items-center mb-8">
+                                            <div>
+                                                <h3 className="text-lg font-bold">Revenue Growth</h3>
+                                                <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-medium">Last 30 Days Trend</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold bg-emerald-400/10 px-3 py-1 rounded-xl">
+                                                <TrendingUp className="w-4 h-4" />
+                                                +24.5%
+                                            </div>
+                                        </div>
+                                        <div className="h-[250px] w-full flex items-end gap-2 px-2">
+                                            {revenueData.map((val, i) => (
+                                                <motion.div
+                                                    key={i}
+                                                    initial={{ height: 0 }}
+                                                    animate={{ height: `${val}%` }}
+                                                    transition={{ delay: i * 0.05, duration: 0.8 }}
+                                                    className="flex-1 bg-gradient-to-t from-blue-600/80 to-blue-400/20 rounded-t-lg relative group"
+                                                >
+                                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                                                        ${val}k
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                        <div className="flex justify-between mt-4 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                            <span>Week 1</span>
+                                            <span>Week 2</span>
+                                            <span>Week 3</span>
+                                            <span>Week 4</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Distribution Stats */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {[
+                                            { label: "New Signups", val: "1.2k", icon: Users, color: "text-blue-400", bg: "bg-blue-400/10" },
+                                            { label: "Transactions", val: "842", icon: Zap, color: "text-orange-400", bg: "bg-orange-400/10" },
+                                            { label: "Global Reach", val: "14", icon: Globe, color: "text-emerald-400", bg: "bg-emerald-400/10" },
+                                            { label: "Uptime", val: "99.9%", icon: Activity, color: "text-purple-400", bg: "bg-purple-400/10" },
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-3xl p-6 hover:bg-white/[0.02] transition-colors cursor-default">
+                                                <div className={`p-3 rounded-2xl w-fit mb-4 ${item.bg}`}>
+                                                    <item.icon className={`w-6 h-6 ${item.color}`} />
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">{item.label}</p>
+                                                <h4 className="text-2xl font-bold">{item.val}</h4>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ) : activeTab === "Logs" ? (
+                            <motion.div
+                                key="logs"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}>
+                                <div className="mb-8">
+                                    <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">System Activity Logs</h1>
+                                    <p className="text-slate-400">Monitor all administrative actions and security events.</p>
+                                </div>
+
+                                <div className="bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-3xl overflow-hidden">
+                                    <div className="p-6 border-b border-white/5 flex gap-4">
+                                        <div className="flex-1 relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                            <input type="text" placeholder="Search logs..." className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm" />
+                                        </div>
+                                        <button className="px-4 py-2 bg-slate-800 border border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-300">Filter By Date</button>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-white/5 bg-slate-950/20">
+                                                    <th className="px-8 py-5">Event</th>
+                                                    <th className="px-8 py-5">User</th>
+                                                    <th className="px-8 py-5">Time</th>
+                                                    <th className="px-8 py-5">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {logs.map((log) => (
+                                                    <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                                                        <td className="px-8 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`p-2 rounded-lg ${log.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                                                    <log.icon className="w-4 h-4" />
+                                                                </div>
+                                                                <span className="text-sm font-bold text-slate-200">{log.action}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-8 py-4 text-sm text-slate-400">{log.user}</td>
+                                                        <td className="px-8 py-4 text-sm text-slate-500 italic font-medium">{log.time}</td>
+                                                        <td className="px-8 py-4">
+                                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-center rounded-lg ${log.status === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                                                {log.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ) : activeTab === "Settings" ? (
+                            <motion.div
+                                key="settings"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
+                                className="max-w-4xl"
+                            >
+                                <div className="mb-8">
+                                    <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">System Settings</h1>
+                                    <p className="text-slate-400">Configure global parameters and security preferences.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6">
+                                    {/* General Settings */}
+                                    <div className="bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-3xl p-8">
+                                        <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+                                            <Settings className="w-6 h-6 text-blue-500" />
+                                            <h3 className="text-lg font-bold">General Configuration</h3>
+                                        </div>
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.systemName}
+                                                        onChange={(e) => setSettings({ ...settings, systemName: e.target.value })}
+                                                        className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm focus:border-blue-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Security Level</label>
+                                                    <select
+                                                        value={settings.securityMode}
+                                                        onChange={(e) => setSettings({ ...settings, securityMode: e.target.value })}
+                                                        className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm outline-none"
+                                                    >
+                                                        <option>Low</option>
+                                                        <option>Medium</option>
+                                                        <option>High</option>
+                                                        <option>Maximum (Ultra)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-6">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6 block">Notification Channels</label>
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                    {[
+                                                        { id: "email", label: "Email Alerts", icon: Mail },
+                                                        { id: "push", label: "Push Notification", icon: Bell },
+                                                        { id: "sms", label: "SMS Gateway", icon: Smartphone },
+                                                    ].map((channel) => (
+                                                        <button
+                                                            key={channel.id}
+                                                            onClick={() => setSettings({
+                                                                ...settings,
+                                                                notifications: { ...settings.notifications, [channel.id]: !settings.notifications[channel.id] }
+                                                            })}
+                                                            className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition-all ${settings.notifications[channel.id] ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-slate-800/30 border-white/5 text-slate-500'}`}
+                                                        >
+                                                            <channel.icon className="w-8 h-8" />
+                                                            <span className="text-xs font-bold uppercase tracking-widest">{channel.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-10 pt-6 border-t border-white/5 flex justify-end">
+                                            <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-blue-500/20 active:scale-95">
+                                                Save All Changes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
                         ) : (
                             <motion.div
                                 key="other"
@@ -725,7 +963,8 @@ const AdminDashboard = () => {
                                     later.
                                 </p>
                             </motion.div>
-                        )}
+                        )
+                        }
                     </AnimatePresence>
                 </div>
             </main>
@@ -843,6 +1082,41 @@ const AdminDashboard = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Quick Action Floating Speed Dial */}
+            <div className="fixed bottom-8 right-8 z-[100]">
+                <AnimatePresence>
+                    {isQuickActionOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                            className="flex flex-col gap-4 mb-4 items-end"
+                        >
+                            {[
+                                { label: "Add New User", icon: Users, action: handleAddUserClick },
+                                { label: "Generate Report", icon: BarChart3, action: handleExportPDF },
+                                { label: "System Sync", icon: Zap, action: () => alert("System Syncing...") },
+                            ].map((btn, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => { btn.action(); setIsQuickActionOpen(false); }}
+                                    className="group flex items-center gap-3 bg-slate-900 border border-white/10 px-4 py-2 rounded-2xl shadow-2xl hover:bg-blue-600 transition-all text-slate-300 hover:text-white"
+                                >
+                                    <span className="text-xs font-bold uppercase tracking-widest hidden group-hover:block transition-all">{btn.label}</span>
+                                    <btn.icon className="w-5 h-5" />
+                                </button>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                <button
+                    onClick={() => setIsQuickActionOpen(!isQuickActionOpen)}
+                    className={`w-14 h-14 rounded-[20px] shadow-2xl flex items-center justify-center transition-all ${isQuickActionOpen ? 'bg-rose-600 rotate-45' : 'bg-blue-600 shadow-blue-500/30'}`}
+                >
+                    <X className={`w-6 h-6 text-white transition-transform ${!isQuickActionOpen && 'rotate-45'}`} />
+                </button>
+            </div>
         </div>
     );
 };
