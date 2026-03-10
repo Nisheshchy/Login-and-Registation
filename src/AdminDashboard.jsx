@@ -163,6 +163,14 @@ const AdminDashboard = () => {
         theme: "Dark",
     });
 
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [profileData, setProfileData] = useState({
+        name: "Nishesh Chaudhary",
+        email: "admin@log.com",
+        role: "System Administrator",
+        employeeId: "EMP-2023-001"
+    });
+
     const logs = [
         { id: 1, action: "User Login", user: "Alex Johnson", time: "2 mins ago", status: "success", icon: CheckCircle2 },
         { id: 2, action: "Settings Update", user: "Nishesh Ch.", time: "15 mins ago", status: "success", icon: CheckCircle2 },
@@ -330,7 +338,7 @@ const AdminDashboard = () => {
                         >
                             <div className="text-right">
                                 <p className="text-sm font-bold leading-none group-hover:text-blue-400 transition-colors">
-                                    Nishesh Ch.
+                                    {profileData.name.split(' ')[0]} {profileData.name.split(' ')[1] ? profileData.name.split(' ')[1][0] + '.' : ''}
                                 </p>
                                 <p className="text-[10px] text-slate-500 font-medium mt-1">
                                     Administrator
@@ -596,8 +604,8 @@ const AdminDashboard = () => {
                                                     <img src="https://i.pravatar.cc/150?u=72" alt="Admin" className="w-full h-full object-cover" />
                                                 </div>
                                             </div>
-                                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">Nishesh Ch.</h2>
-                                            <p className="text-blue-400 text-xs font-bold uppercase tracking-widest mt-1">Administrator</p>
+                                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">{profileData.name}</h2>
+                                            <p className="text-blue-400 text-xs font-bold uppercase tracking-widest mt-1">{profileData.role}</p>
                                             <div className="mt-6 w-full pt-6 border-t border-white/5 space-y-3">
                                                 <div className="flex justify-between text-xs">
                                                     <span className="text-slate-500 font-medium">Status</span>
@@ -623,17 +631,19 @@ const AdminDashboard = () => {
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Full Name</label>
                                                         <input
-                                                            readOnly
-                                                            value="Nishesh Chaudhary"
-                                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors"
+                                                            readOnly={!isEditingProfile}
+                                                            value={profileData.name}
+                                                            onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                                                            className={`w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors ${isEditingProfile ? "border-blue-500/30 bg-slate-800" : ""}`}
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Email Address</label>
                                                         <input
-                                                            readOnly
-                                                            value="admin@log.com"
-                                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors"
+                                                            readOnly={!isEditingProfile}
+                                                            value={profileData.email}
+                                                            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                                                            className={`w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors ${isEditingProfile ? "border-blue-500/30 bg-slate-800" : ""}`}
                                                         />
                                                     </div>
                                                 </div>
@@ -641,24 +651,46 @@ const AdminDashboard = () => {
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Role</label>
                                                         <input
-                                                            readOnly
-                                                            value="System Administrator"
-                                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors"
+                                                            readOnly={!isEditingProfile}
+                                                            value={profileData.role}
+                                                            onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
+                                                            className={`w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors ${isEditingProfile ? "border-blue-500/30 bg-slate-800" : ""}`}
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Employee ID</label>
                                                         <input
-                                                            readOnly
-                                                            value="EMP-2023-001"
-                                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors"
+                                                            readOnly={!isEditingProfile}
+                                                            value={profileData.employeeId}
+                                                            onChange={(e) => setProfileData({ ...profileData, employeeId: e.target.value })}
+                                                            className={`w-full bg-slate-800/50 border border-white/5 rounded-xl py-3 px-4 text-sm text-slate-300 outline-none focus:border-blue-500/50 transition-colors ${isEditingProfile ? "border-blue-500/30 bg-slate-800" : ""}`}
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="pt-6 border-t border-white/5">
-                                                    <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 text-sm">
-                                                        Edit Profile Details
-                                                    </button>
+                                                <div className="pt-6 border-t border-white/5 flex gap-3">
+                                                    {!isEditingProfile ? (
+                                                        <button
+                                                            onClick={() => setIsEditingProfile(true)}
+                                                            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 text-sm"
+                                                        >
+                                                            Edit Profile Details
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={() => setIsEditingProfile(false)}
+                                                                className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 text-sm"
+                                                            >
+                                                                Save Changes
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setIsEditingProfile(false)}
+                                                                className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all border border-white/5 active:scale-95 text-sm"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
