@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, UserPlus, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -8,10 +8,38 @@ const Sign = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
 
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate successful signup
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    // Get existing users or initialize empty array
+    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+
+    // Check if user already exists
+    if (users.find(u => u.email === email)) {
+      setError("User with this email already exists");
+      return;
+    }
+
+    // Add new user
+    users.push({ name, email, password });
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+
+    // Also set current user for immediate access
+    localStorage.setItem('token', 'mock-token-' + Math.random().toString(36).substr(2));
+    localStorage.setItem('user', JSON.stringify({ name, email }));
+
+    setError("");
     setIsSuccess(true);
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 2500);
   };
 
   const getStrength = (pass) => {
@@ -54,6 +82,15 @@ const Sign = () => {
               >
                 Join us today and get started
               </motion.p>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold"
+                >
+                  {error}
+                </motion.div>
+              )}
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
