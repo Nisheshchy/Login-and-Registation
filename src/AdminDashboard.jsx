@@ -33,6 +33,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const BackgroundEffects = () => (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-5%] left-[-5%] w-[45%] h-[45%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[45%] h-[45%] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] bg-purple-600/5 rounded-full blur-[100px]" />
+    </div>
+);
+
 const AdminDashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState("Dashboard");
@@ -233,30 +241,35 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 flex overflow-hidden font-sans">
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex overflow-hidden font-sans relative">
+            <BackgroundEffects />
             {/* Sidebar */}
             <motion.aside
                 initial={false}
-                animate={{ width: isSidebarOpen ? "260px" : "80px" }}
-                className="bg-slate-900/50 backdrop-blur-xl border-r border-white/5 flex flex-col z-50 h-screen transition-all duration-300 ease-in-out">
-                <div className="p-6 flex items-center gap-3 overflow-hidden">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-                        <LayoutDashboard className="text-white w-6 h-6" />
+                animate={{ width: isSidebarOpen ? "280px" : "80px" }}
+                className="bg-slate-900/40 backdrop-blur-3xl border-r border-white/5 flex flex-col z-50 h-screen transition-all duration-300 ease-in-out relative">
+                <div className="p-8 flex items-center gap-4 overflow-hidden">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
+                        <Shield className="text-white w-6 h-6" />
                     </div>
                     <AnimatePresence>
                         {isSidebarOpen && (
-                            <motion.span
+                            <motion.div
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
-                                className="font-bold text-xl tracking-tight whitespace-nowrap">
-                                LOG<span className="text-blue-500">Admin</span>
-                            </motion.span>
+                                className="flex flex-col"
+                            >
+                                <span className="font-black text-2xl tracking-tighter leading-none">
+                                    LOG<span className="text-blue-500">Admin</span>
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Control Panel</span>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
 
-                <nav className="flex-1 px-4 py-6 space-y-2">
+                <nav className="flex-1 px-4 py-6 space-y-2.5">
                     {[
                         { name: "Dashboard", icon: LayoutDashboard },
                         { name: "Users", icon: Users },
@@ -268,18 +281,18 @@ const AdminDashboard = () => {
                         <button
                             key={item.name}
                             onClick={() => setActiveTab(item.name)}
-                            className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group relative ${activeTab === item.name
+                            className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative ${activeTab === item.name
                                 ? "bg-blue-600/10 text-blue-400"
                                 : "text-slate-400 hover:bg-white/5 hover:text-white"
                                 }`}>
                             {activeTab === item.name && (
                                 <motion.div
                                     layoutId="active-pill"
-                                    className="absolute left-0 w-1 h-6 bg-blue-500 rounded-r-full"
+                                    className="absolute left-0 w-1.5 h-8 bg-blue-500 rounded-r-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                                 />
                             )}
                             <item.icon
-                                className={`w-5 h-5 shrink-0 ${activeTab === item.name ? "text-blue-400" : "group-hover:scale-110 transition-transform"}`}
+                                className={`w-5 h-5 shrink-0 transition-transform duration-300 ${activeTab === item.name ? "text-blue-400 scale-110" : "group-hover:scale-110"}`}
                             />
                             <AnimatePresence>
                                 {isSidebarOpen && (
@@ -287,7 +300,7 @@ const AdminDashboard = () => {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="font-medium whitespace-nowrap">
+                                        className="font-bold text-sm tracking-wide whitespace-nowrap">
                                         {item.name}
                                     </motion.span>
                                 )}
@@ -296,12 +309,29 @@ const AdminDashboard = () => {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-white/5">
+                <div className="p-6 border-t border-white/5">
+                    <div className="bg-slate-800/20 rounded-3xl p-4 border border-white/5 mb-4">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                                <Zap className="w-5 h-5 text-orange-400" />
+                            </div>
+                            {isSidebarOpen && (
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">System Load</p>
+                                    <p className="text-sm font-bold text-white">Optimal 12%</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <button
-                        onClick={() => navigate("/login")}
-                        className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all">
+                        onClick={() => {
+                            localStorage.removeItem('token');
+                            navigate("/login");
+                        }}
+                        className="w-full flex items-center gap-4 px-5 py-3 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all font-bold text-sm"
+                    >
                         <LogOut className="w-5 h-5 shrink-0" />
-                        {isSidebarOpen && <span className="font-medium">Logout</span>}
+                        {isSidebarOpen && <span>Sign Out</span>}
                     </button>
                 </div>
             </motion.aside>
@@ -377,51 +407,46 @@ const AdminDashboard = () => {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                                     {stats.map((stat, index) => (
                                         <motion.div
                                             key={stat.title}
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.1 }}
-                                            className="bg-slate-900/40 backdrop-blur-sm border border-white/5 p-6 rounded-3xl hover:border-blue-500/30 transition-all group relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[50px] rounded-full -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-colors" />
-                                            <div className="flex justify-between items-start mb-4">
+                                            whileHover={{ y: -5 }}
+                                            className="bg-slate-900/40 backdrop-blur-xl border border-white/5 p-7 rounded-[32px] hover:border-blue-500/30 transition-all group relative overflow-hidden">
+                                            <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-blue-500/10 blur-2xl rounded-full opacity-50 group-hover:bg-blue-500/20 transition-all duration-500" />
+                                            <div className="flex justify-between items-start mb-6 relative z-10">
                                                 <div
-                                                    className={`p-3 rounded-2xl bg-slate-800 border border-white/5 group-hover:scale-110 transition-transform`}>
+                                                    className={`p-3.5 rounded-2xl bg-slate-800/50 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500`}>
                                                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
                                                 </div>
                                                 <div
-                                                    className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${stat.trend === "up" ? "text-emerald-400 bg-emerald-400/10" : "text-rose-400 bg-rose-400/10"}`}>
+                                                    className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl ${stat.trend === "up" ? "text-emerald-400 bg-emerald-400/10" : "text-rose-400 bg-rose-400/10"}`}>
                                                     {stat.trend === "up" ? (
-                                                        <TrendingUp className="w-3 h-3" />
+                                                        <TrendingUp className="w-3.5 h-3.5" />
                                                     ) : (
-                                                        <TrendingDown className="w-3 h-3" />
+                                                        <TrendingDown className="w-3.5 h-3.5" />
                                                     )}
                                                     {stat.change}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                                            <div className="relative z-10">
+                                                <p className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">
                                                     {stat.title}
                                                 </p>
-                                                {stat.title === "Active Now" && (
-                                                    <span className="flex h-2 w-2 relative">
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                                                    </span>
-                                                )}
+                                                <h3 className="text-3xl font-black tracking-tighter">
+                                                    {stat.prefix}
+                                                    {typeof stat.value === "number"
+                                                        ? stat.value.toLocaleString(undefined, {
+                                                            minimumFractionDigits: stat.title.includes("Revenue") ? 2 : 0,
+                                                            maximumFractionDigits: stat.title.includes("Revenue") ? 2 : 0,
+                                                        })
+                                                        : stat.value}
+                                                    {stat.suffix}
+                                                </h3>
                                             </div>
-                                            <h3 className="text-2xl font-bold">
-                                                {stat.prefix}
-                                                {typeof stat.value === "number"
-                                                    ? stat.value.toLocaleString(undefined, {
-                                                        minimumFractionDigits: stat.title.includes("Revenue") ? 2 : 0,
-                                                        maximumFractionDigits: stat.title.includes("Revenue") ? 2 : 0,
-                                                    })
-                                                    : stat.value}
-                                                {stat.suffix}
-                                            </h3>
                                         </motion.div>
                                     ))}
                                 </div>
