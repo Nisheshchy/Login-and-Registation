@@ -15,14 +15,32 @@ const Login = () => {
     const email = formData.get("email");
     const password = formData.get("password");
 
+    // Special check for hardcoded Admin
     if (email === "admin@log.com" && password === "admin~109") {
       setError("");
       setIsSuccess(true);
+      localStorage.setItem('token', 'admin-token-' + Math.random().toString(36).substr(2));
+      localStorage.setItem('user', JSON.stringify({ name: "Admin User", email }));
       setTimeout(() => {
         navigate("/admin");
       }, 2000);
+      return;
+    }
+
+    // Check against registered users
+    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (user) {
+      setError("");
+      setIsSuccess(true);
+      localStorage.setItem('token', 'user-token-' + Math.random().toString(36).substr(2));
+      localStorage.setItem('user', JSON.stringify({ name: user.name, email: user.email }));
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
     } else {
-      setError("Invalid admin credentials");
+      setError("Invalid email or password. Please sign up first.");
     }
   };
 

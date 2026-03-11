@@ -6,6 +6,23 @@ import "./App.css";
 import Login from "./login.jsx";
 import Sign from "./sign.jsx";
 import AdminDashboard from "./AdminDashboard.jsx";
+import UserDashboard from "./UserDashboard.jsx";
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -16,38 +33,50 @@ const AnimatedRoutes = () => {
         <Route
           path="/login"
           element={
-            <div className="min-h-screen w-full flex justify-center items-center bg-slate-950 overflow-hidden relative">
-              <BackgroundEffects />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="relative z-10 w-full max-w-md p-6"
-              >
-                <Login />
-              </motion.div>
-            </div>
+            <PublicRoute>
+              <div className="min-h-screen w-full flex justify-center items-center bg-slate-950 overflow-hidden relative">
+                <BackgroundEffects />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative z-10 w-full max-w-md p-6"
+                >
+                  <Login />
+                </motion.div>
+              </div>
+            </PublicRoute>
           }
         />
         <Route
           path="/signup"
           element={
-            <div className="min-h-screen w-full flex justify-center items-center bg-slate-950 overflow-hidden relative">
-              <BackgroundEffects />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="relative z-10 w-full max-w-md p-6"
-              >
-                <Sign />
-              </motion.div>
-            </div>
+            <PublicRoute>
+              <div className="min-h-screen w-full flex justify-center items-center bg-slate-950 overflow-hidden relative">
+                <BackgroundEffects />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative z-10 w-full max-w-md p-6"
+                >
+                  <Sign />
+                </motion.div>
+              </div>
+            </PublicRoute>
           }
         />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </AnimatePresence>
