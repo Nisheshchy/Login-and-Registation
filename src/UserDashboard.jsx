@@ -38,6 +38,8 @@ const BackgroundEffects = () => (
     </div>
 );
 
+import { verifyToken } from "./utils/security";
+
 const UserDashboard = () => {
     const [activeTab, setActiveTab] = useState("Store Dashboard");
     const [notifications, setNotifications] = useState(5);
@@ -48,9 +50,12 @@ const UserDashboard = () => {
     useEffect(() => {
         const fetchUserData = () => {
             const token = localStorage.getItem('token');
+            const decoded = verifyToken(token);
             const storedUser = localStorage.getItem('user');
 
-            if (!token) {
+            if (!decoded) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
                 navigate('/login');
                 return;
             }
@@ -59,8 +64,7 @@ const UserDashboard = () => {
                 setUserData(JSON.parse(storedUser));
                 setLoading(false);
             } else {
-                // Default fallback if no user data found but token exists
-                setUserData({ name: "Store Manager", email: "manager@store.com" });
+                setUserData({ name: "Store Manager", email: decoded.id ? atob(decoded.id) : "manager@store.com" });
                 setLoading(false);
             }
         };
