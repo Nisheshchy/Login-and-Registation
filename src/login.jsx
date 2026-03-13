@@ -2,45 +2,68 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { loginSchema, comparePassword, generateToken, verifyToken } from "./utils/security";
 
 const Login = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (attempts >= 5) {
+      setError("Too many login attempts. Please try again later.");
+      return;
+    }
+
+    setIsLoading(true);
+
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
 
-    // Special check for hardcoded Admin
-    if (email === "admin@log.com" && password === "admin~109") {
-      setError("");
-      setIsSuccess(true);
-      localStorage.setItem('token', 'admin-token-' + Math.random().toString(36).substr(2));
-      localStorage.setItem('user', JSON.stringify({ name: "Admin User", email }));
-      setTimeout(() => {
-        navigate("/admin");
-      }, 2000);
+    // 1. Validate
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      setError(validation.error.errors[0].message);
+      setIsLoading(false);
       return;
     }
 
-    // Check against registered users
-    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
+    try {
+      // 2. Special check for hardcoded Admin (securely)
+      if (email === "admin@log.com" && password === "admin~109") {
+        const token = generateToken({ email });
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify({ name: "Admin User", email }));
+        setIsSuccess(true);
+        setTimeout(() => navigate("/admin"), 2000);
+        return;
+      }
 
-    if (user) {
-      setError("");
-      setIsSuccess(true);
-      localStorage.setItem('token', 'user-token-' + Math.random().toString(36).substr(2));
-      localStorage.setItem('user', JSON.stringify({ name: user.name, email: user.email }));
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
-    } else {
-      setError("Invalid email or password. Please sign up first.");
+      // 3. Check against registered users
+      const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      const user = users.find(u => u.email === email);
+
+      if (user && await comparePassword(password, user.password)) {
+        const token = generateToken({ email: user.email });
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify({ name: user.name, email: user.email }));
+        setIsSuccess(true);
+        setTimeout(() => navigate("/dashboard"), 2000);
+      } else {
+        setAttempts(prev => prev + 1);
+        setError("Invalid email or password.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
