@@ -8,18 +8,31 @@ import Sign from "./sign.jsx";
 import AdminDashboard from "./AdminDashboard.jsx";
 import UserDashboard from "./UserDashboard.jsx";
 
-const ProtectedRoute = ({ children }) => {
+import { verifyToken } from "./utils/security";
+
+const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem("token");
-  if (!token) {
+  const decoded = verifyToken(token);
+
+  if (!decoded) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     return <Navigate to="/login" replace />;
   }
+
+  if (requiredRole && decoded.role !== requiredRole) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 };
 
 const PublicRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  if (token) {
-    return <Navigate to="/dashboard" replace />;
+  const decoded = verifyToken(token);
+
+  if (decoded) {
+    return <Navigate to={decoded.role === "admin" ? "/admin" : "/dashboard"} replace />;
   }
   return children;
 };
@@ -68,7 +81,14 @@ const AnimatedRoutes = () => {
             </PublicRoute>
           }
         />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
