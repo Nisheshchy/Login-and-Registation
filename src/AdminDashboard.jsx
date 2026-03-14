@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { verifyToken } from "./utils/security";
 import {
     LayoutDashboard,
     Users,
@@ -41,7 +42,6 @@ const BackgroundEffects = () => (
     </div>
 );
 
-import { verifyToken } from "./utils/security";
 
 const AdminDashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);

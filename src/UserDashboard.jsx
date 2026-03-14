@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { verifyToken } from "./utils/security";
 import {
     LayoutDashboard,
     User,
@@ -38,7 +39,6 @@ const BackgroundEffects = () => (
     </div>
 );
 
-import { verifyToken } from "./utils/security";
 
 const UserDashboard = () => {
     const [activeTab, setActiveTab] = useState("Store Dashboard");
