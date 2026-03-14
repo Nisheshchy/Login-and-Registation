@@ -2,44 +2,69 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, UserPlus, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { signupSchema, hashPassword, generateToken, sanitize } from "./utils/security";
 
 const Sign = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
     const formData = new FormData(e.currentTarget);
-    const name = formData.get("name");
-    const email = formData.get("email");
-    const password = formData.get("password");
+    const rawData = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: password,
+    };
 
-    // Get existing users or initialize empty array
-    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-
-    // Check if user already exists
-    if (users.find(u => u.email === email)) {
-      setError("User with this email already exists");
+    // 1. Validate input using Zod
+    const validation = signupSchema.safeParse(rawData);
+    if (!validation.success) {
+      setError(validation.error.errors[0].message);
+      setIsLoading(false);
       return;
     }
 
-    // Add new user
-    users.push({ name, email, password });
-    localStorage.setItem('registeredUsers', JSON.stringify(users));
+    const { name, email } = validation.data;
+    const sanitizedName = sanitize(name);
 
-    // Also set current user for immediate access
-    localStorage.setItem('token', 'mock-token-' + Math.random().toString(36).substr(2));
-    localStorage.setItem('user', JSON.stringify({ name, email }));
+    // 2. Check if user already exists
+    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    if (users.find(u => u.email === email)) {
+      setError("User with this email already exists");
+      setIsLoading(false);
+      return;
+    }
 
-    setError("");
-    setIsSuccess(true);
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 2500);
+    try {
+      // 3. Hash password
+      const hashedPassword = await hashPassword(password);
+
+      // 4. Add new user with hashed password
+      users.push({ name: sanitizedName, email, password: hashedPassword });
+      localStorage.setItem('registeredUsers', JSON.stringify(users));
+
+      // 5. Generate secure mock token
+      const token = generateToken({ email });
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify({ name: sanitizedName, email }));
+
+      setIsSuccess(true);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2500);
+    } catch (err) {
+      setError("An error occurred during signup. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStrength = (pass) => {
