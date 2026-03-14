@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { verifyToken } from "./utils/security";
 import {
     LayoutDashboard,
     Users,
@@ -41,10 +42,21 @@ const BackgroundEffects = () => (
     </div>
 );
 
+
 const AdminDashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState("Dashboard");
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const decoded = verifyToken(token);
+        if (!decoded || decoded.role !== "admin") {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            navigate("/login");
+        }
+    }, [navigate]);
 
     const [stats, setStats] = useState([
         {
